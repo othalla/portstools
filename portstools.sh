@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# portstools.sh <jail> <check|update|install|remove> <port|all>
+# portstools.sh <global|jail> <check|update|install|remove> <port|all>
 #
 
 checkArgs() {
@@ -12,7 +12,7 @@ checkArgs() {
 }
 
 usage() {
-  echo "$0 <jail> <check|update|install|remove> <port_name|all>"
+  echo "$0 <global|jail> <check|update|install|remove> <port_name|all>"
 }
 
 mountSrcBaseInJail() {
