@@ -93,7 +93,7 @@ runRemove () {
   echo "TODO!"
 }
 
-checkArgs || exit 1
+checkArgs $# || exit 1
 JNAME=$1
 shift
 
