@@ -4,7 +4,7 @@
 #
 
 checkArgs() {
-  if [ "$#" -lt 3 ];
+  if [ "$#" -lt 2 ];
   then
     usage
     return 1
