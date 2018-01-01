@@ -44,20 +44,44 @@ umountPortsInJail() {
 }
 
 updateAllPorts () {
-  portmaster -a -j ${JNAME} || {
-    echo "Failed to update ports for ${JNAME}"
-  return 1
-}
+  if [ "${JNAME}" == "global" ];
+  then
+    portmaster -a --no-confirm || {
+      echo "failed to update all ports for global jail"
+      return 1
+    }
+  else
+    mountPortsInJail || return 1
+    mountSrcBaseInJail || return 1
+    jexec ${JNAME} portmaster -a --no-confirm || {
+      echo "failed to update all ports for global jail"
+      return 1
+    }
+  fi
 }
 
-runUpdate () {
-  if [ $1 == "all" ];
+updatePorts () {
+  CMD_PREFIX=""
+  if [ "${JNAME}" != "global" ];
   then
-    updateAllPorts || return 1
+    mountPortsInJail || return 1
+    mountSrcBaseInJail || return 1
+    CMD_PREFIX="jexec ${JNAME}"
+  fi
+  if [ "$1" == "all" ];
+  then
+    CMD="portmaster --no-confirm -a"
   else
-    checkIfPorstExists
-    #(whereis lsof netdata KO |awk 'if($2!=""){print $2}')
-    updatePorts
+    CMD="portmaster --no-confirm $@"
+  fi
+  $CMD_PREFIX $CMD || {
+    echo "failed to update ports"
+    return 1
+  }
+  if [ "${JNAME}" != "global" ];
+  then
+    umountPortsInJail || return 1
+    umountSrcBaseInJail || return 1
   fi
 }
 
@@ -76,22 +100,22 @@ shift
 case $1 in
   update)
     shift
-    runUpdate "$@" || {
+    updatePorts "$@" || {
       echo "Failed to perform port(s) update(s) for ${JNAME}"
+      exit 1
+    }
+    ;;
+  install)
+    shift
+    runInstall "$@"
+    ;;
+  remove)
+    shift
+    runRemove "$@"
+    ;;
+  *)
+    usage
     exit 1
-  }
-  ;;
-install)
-  shift
-  runInstall "$@"
-  ;;
-remove)
-  shift
-  runRemove "$@"
-  ;;
-*)
-  usage
-  exit 1
-  ;;
+    ;;
 esac
 
