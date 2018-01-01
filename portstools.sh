@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# portstools.sh <jail> <update|install|remove> <port|all>
+# portstools.sh <jail> <check|update|install|remove> <port|all>
 #
 
 checkArgs() {
@@ -12,7 +12,7 @@ checkArgs() {
 }
 
 usage() {
-  echo "$0 <jail> <update|install|remove> <port_name|all>"
+  echo "$0 <jail> <check|update|install|remove> <port_name|all>"
 }
 
 mountSrcBaseInJail() {
@@ -85,6 +85,24 @@ updatePorts () {
   fi
 }
 
+checkPorts() {
+  if [ "${JNAME}" != "global" ];
+  then
+    mountPortsInJail || return 1
+    mountSrcBaseInJail || return 1
+    OPTS="-j ${JNAME}"
+  fi
+  pkg $OPTS version -vIL= || {
+    echo "failed to get port(s) status"
+    return 1
+  }
+  if [ "${JNAME}" != "global" ];
+  then
+    umountPortsInJail || return 1
+    umountSrcBaseInJail || return 1
+  fi
+}
+
 runInstall () {
   echo "TODO!"
 }
@@ -98,6 +116,13 @@ JNAME=$1
 shift
 
 case $1 in
+  check)
+    shift
+    checkPorts || {
+      echo "Failed to get ports states"
+      return 1
+    }
+    ;;
   update)
     shift
     updatePorts "$@" || {
