@@ -16,28 +16,28 @@ usage() {
 }
 
 mountSrcBaseInJail() {
-  mount -t nullfs -o ro /usr/src /jail/${JNAME}/usr/src || {
+  mount -t nullfs -o ro /usr/src /jails/${JNAME}/usr/src || {
     echo "Failed to mount SRC_BASE for jail ${JNAME}"
     return 1
   }
 }
 
 umountSrcBaseInJail() {
-  umount /jail/${JNAME}/usr/src || {
+  umount /jails/${JNAME}/usr/src || {
     echo "Failed to umount SRC_BASE for jail ${JNAME}"
     return 1
   }
 }
 
 mountPortsInJail() {
-  mount -t nullfs /usr/ports /jail/${JNAME}/usr/ports || {
+  mount -t nullfs /usr/ports /jails/${JNAME}/usr/ports || {
     echo "Failed to mount ports tree for jail ${JNAME}"
     return 1
   }
 }
 
 umountPortsInJail() {
-  umount /jail/${JNAME}/usr/ports || {
+  umount /jails/${JNAME}/usr/ports || {
     echo "Failed to umount ports tree for jail ${JNAME}"
     return 1
   }
