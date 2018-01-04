@@ -46,14 +46,14 @@ umountPortsInJail() {
 updateAllPorts () {
   if [ "${JNAME}" == "global" ];
   then
-    portmaster -a --no-confirm || {
+    portmaster -aydbg --no-confirm || {
       echo "failed to update all ports for global jail"
       return 1
     }
   else
     mountPortsInJail || return 1
     mountSrcBaseInJail || return 1
-    jexec ${JNAME} portmaster -a --no-confirm || {
+    jexec ${JNAME} portmaster -aydbg --no-confirm || {
       echo "failed to update all ports for global jail"
       return 1
     }
@@ -70,7 +70,8 @@ updatePorts () {
   fi
   if [ "$1" == "all" ];
   then
-    CMD="portmaster --no-confirm -a"
+    echo "Updating all ports for ${JNAME}"
+    CMD="portmaster -aydbg --no-confirm"
   else
     CMD="portmaster --no-confirm $@"
   fi
