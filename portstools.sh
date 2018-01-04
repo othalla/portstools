@@ -103,8 +103,46 @@ checkPorts() {
   fi
 }
 
-runInstall () {
-  echo "TODO!"
+installPorts () {
+  echo "ports to install $@"
+  for i in $@
+  do
+    installPort $i || {
+      echo "Failed to install port $i"
+      return 1
+    }
+  done
+}
+
+installPort () {
+  PORT=$1
+  if [ "${JNAME}" != "global" ] ; then
+    mountPortsInJail || return 1
+    mountSrcBaseInJail || return 1
+    CMD_PREFIX="jexec ${JNAME}"
+  fi
+  findPortInTree $PORT || {
+    echo "Failed to find port in tree"
+    return 1
+  }
+  PORT_PATH=$(findPortInTree $PORT)
+  echo "Installing $PORT_PATH"
+  $CMD_PREFIX make -C $PORT_PATH install clean
+  if [ "${JNAME}" != "global" ];
+  then
+    umountPortsInJail || return 1
+    umountSrcBaseInJail || return 1
+  fi
+}
+
+findPortInTree () {
+  PORT=$1
+  PORT_PATH=$(whereis $PORT| awk '{if ($2 != "") { print $NF }}')
+  [ -z "$PORT_PATH" ] && {
+    echo "Failed to find port path"
+    return 1
+  }
+  echo $PORT_PATH
 }
 
 runRemove () {
@@ -120,7 +158,7 @@ case $1 in
     shift
     checkPorts || {
       echo "Failed to get ports states"
-      return 1
+      exit 1
     }
     ;;
   update)
@@ -132,7 +170,10 @@ case $1 in
     ;;
   install)
     shift
-    runInstall "$@"
+    installPorts "$@" || {
+      echo "Faileds to install port(s)"
+      exit 1
+    }
     ;;
   remove)
     shift
