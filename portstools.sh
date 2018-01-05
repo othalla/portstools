@@ -54,9 +54,9 @@ updatePorts () {
   if [ "$1" == "all" ];
   then
     echo "Updating all ports for ${JNAME}"
-    CMD="portmaster -aydbg --no-confirm"
+    CMD="portmaster -m DISABLE_VULNERABILITIES=yes -aydbg --no-confirm"
   else
-    CMD="portmaster --no-confirm $@"
+    CMD="portmaster -m DISABLE_VULNERABILITIES=yes --no-confirm $@"
   fi
   $CMD_PREFIX $CMD || {
     echo "failed to update ports"
