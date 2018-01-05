@@ -98,6 +98,27 @@ installPorts () {
   done
 }
 
+makePort () {
+  PORT=$1
+  if [ "${JNAME}" != "global" ] ; then
+    mountPortsInJail || return 1
+    mountSrcBaseInJail || return 1
+    CMD_PREFIX="jexec ${JNAME}"
+  fi
+  findPortInTree $PORT || {
+    echo "Failed to find port in tree"
+    return 1
+  }
+  PORT_PATH=$(findPortInTree $PORT)
+  echo "Installing $PORT_PATH"
+  $CMD_PREFIX make -C $PORT_PATH $ACTION clean
+  if [ "${JNAME}" != "global" ];
+  then
+    umountPortsInJail || return 1
+    umountSrcBaseInJail || return 1
+  fi
+}
+
 installPort () {
   PORT=$1
   if [ "${JNAME}" != "global" ] ; then
@@ -154,13 +175,23 @@ case $1 in
     ;;
   install)
     shift
+    ACTION="$1"
     installPorts "$@" || {
       echo "Faileds to install port(s)"
       exit 1
     }
     ;;
+  reinstall)
+    shift
+    ACTION="$1"
+    makePort "$@" || {
+      echo "Failed to reinstall port(s) $@"
+      exit 1
+    }
+    ;;
   remove)
     shift
+    ACTION="deinstall"
     runRemove "$@"
     ;;
   *)
