@@ -43,6 +43,16 @@ umountPortsInJail() {
   }
 }
 
+cleanExit () {
+  if [ "${JNAME}" != "global" ];
+  then
+    umountPortsInJail || return 1
+    umountSrcBaseInJail || return 1
+    echo "Umounting ports & src then leaving"
+  fi
+  exit $1
+}
+
 updatePorts () {
   CMD_PREFIX=""
   if [ "${JNAME}" != "global" ];
@@ -164,13 +174,14 @@ case $1 in
     checkPorts || {
       echo "Failed to get ports states"
       exit 1
+      cleanExit 1
     }
     ;;
   update)
     shift
     updatePorts "$@" || {
       echo "Failed to perform port(s) update(s) for ${JNAME}"
-      exit 1
+      cleanExit 1
     }
     ;;
   install)
@@ -178,7 +189,7 @@ case $1 in
     ACTION="$1"
     installPorts "$@" || {
       echo "Faileds to install port(s)"
-      exit 1
+      cleanExit 1
     }
     ;;
   reinstall)
@@ -186,13 +197,14 @@ case $1 in
     ACTION="$1"
     makePort "$@" || {
       echo "Failed to reinstall port(s) $@"
-      exit 1
+      cleanExit 1
     }
     ;;
   remove)
     shift
     ACTION="deinstall"
     runRemove "$@"
+    cleanExit 1
     ;;
   *)
     usage
